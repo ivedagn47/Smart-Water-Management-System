@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from multi_tank_analysis import analyze_all_sources
+from multitankanalysis import analyze_all_sources
 
 st.set_page_config(page_title="Smart Water Management Dashboard", layout="wide")
 st.title("🚰 Smart Water Management: Multi-Tank Analysis")
