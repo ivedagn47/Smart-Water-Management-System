@@ -1,105 +1,89 @@
 import pandas as pd
-import requests
-from datetime import datetime, timedelta
-import matplotlib.pyplot as plt
-import seaborn as sns
-import io
+from datetime import datetime
+import numpy as np
 
-# Constants
-tank_capacity = 10000  # Liters
-thing_speak_links = {
-    'Tank 1': 'https://api.thingspeak.com/channels/CHANNEL_ID_1/feeds.csv?api_key=API_KEY_1',
-    'Tank 2': 'https://api.thingspeak.com/channels/CHANNEL_ID_2/feeds.csv?api_key=API_KEY_2',
-    'Tank 3': 'https://api.thingspeak.com/channels/CHANNEL_ID_3/feeds.csv?api_key=API_KEY_3'
-}
-
-def fetch_data(source, from_csv=False):
-    if from_csv:
-        return pd.read_csv(source)
-    else:
-        response = requests.get(source)
-        return pd.read_csv(io.StringIO(response.text))
-
-def preprocess(df):
-    df["created_at"] = pd.to_datetime(df["created_at"], errors="coerce") + timedelta(hours=5, minutes=30)
-    df = df.sort_values("created_at")
-    df["field1"] = pd.to_numeric(df["field1"], errors="coerce").fillna(0)
-    df["water_liters"] = (df["field1"] / 100) * tank_capacity
-    df["water_liters"] = df["water_liters"].clip(0, tank_capacity)
-    return df
-
-def calculate_usage_metrics(df):
+def clean_and_prepare(df):
     df = df.copy()
-    df["date"] = df["created_at"].dt.date
-    df["hour"] = df["created_at"].dt.hour
-    df["water_diff"] = df["water_liters"].diff()
-    df["time_diff"] = df["created_at"].diff().dt.total_seconds()
-    df["usage_rate"] = df["water_diff"] / df["time_diff"]
-    return df
+    df['created_at'] = pd.to_datetime(df['created_at'], errors='coerce')
+    df = df.dropna(subset=['created_at'])
 
-def summarize(df):
-    summary = {}
-    df = calculate_usage_metrics(df)
+    if 'field1' in df.columns:
+        df['water_liters'] = pd.to_numeric(df['field1'], errors='coerce')
+    elif 'water_liters' in df.columns:
+        df['water_liters'] = pd.to_numeric(df['water_liters'], errors='coerce')
+    else:
+        raise ValueError("Missing expected column for water data (field1 or water_liters)")
 
-    # Average Daily Consumption
-    daily = df.groupby("date")["water_diff"].sum()
-    summary["average_daily_consumption"] = daily.mean()
+    df = df.dropna(subset=['water_liters'])
+    df = df.sort_values('created_at')
+    df = df[df['water_liters'] >= 0]
+    return df[['created_at', 'water_liters']]
 
-    # Peak Usage Periods
-    hourly = df.groupby("hour")["usage_rate"].mean()
-    summary["peak_usage_hour"] = hourly.idxmax()
+def summarize_data(df):
+    stats = {
+        'Total Readings': len(df),
+        'Total Liters Recorded': round(df['water_liters'].sum(), 2),
+        'Average Usage per Reading': round(df['water_liters'].diff().mean(), 2),
+        'Maximum Recorded': df['water_liters'].max(),
+        'Minimum Recorded': df['water_liters'].min(),
+    }
+    return stats
 
-    # Refill Patterns
-    refills = df[df["water_diff"] > 0]
-    summary["average_refill_time"] = refills["time_diff"].mean()
+def detect_anomalies(df):
+    df = df.copy()
+    df['usage_rate'] = df['water_liters'].diff()
+    threshold = df['usage_rate'].mean() + 3 * df['usage_rate'].std()
+    anomalies = df[df['usage_rate'] > threshold]
+    return anomalies
 
-    # Idle Duration
-    df["status"] = df["water_diff"].apply(lambda x: 'Filling' if x > 0 else ('Draining' if x < 0 else 'Idle'))
-    summary["status_counts"] = df["status"].value_counts()
+def group_by_hour(df):
+    df = df.copy()
+    df['hour'] = df['created_at'].dt.hour
+    return df.groupby('hour')['water_liters'].mean()
 
-    # Weekly Summary
-    df["week"] = df["created_at"].dt.to_period("W").astype(str)
-    weekly_summary = df.groupby("week")["water_diff"].sum().reset_index()
+def group_by_day(df):
+    df = df.copy()
+    df['date'] = df['created_at'].dt.date
+    return df.groupby('date')['water_liters'].mean()
 
-    # Anomalies
-    anomalies = df[abs(df["usage_rate"]) > df["usage_rate"].std() * 2]
+def weekly_summary(df):
+    df = df.copy()
+    df['week'] = df['created_at'].dt.to_period('W').astype(str)
+    df['water_diff'] = df['water_liters'].diff()
+    return df.groupby('week')[['water_diff']].sum().reset_index()
 
-    return summary, daily, hourly, weekly_summary, anomalies
-
-def compare_tanks(data_dict):
-    all_tanks = []
-    for name, df in data_dict.items():
-        df["Tank"] = name
-        df = calculate_usage_metrics(df)
-        all_tanks.append(df)
-    return pd.concat(all_tanks, ignore_index=True)
-
-def analyze_all_sources(sources, from_csv=False):
-    data = {}
+def analyze_all_sources(source_dict, from_csv=False):
     summaries = {}
     daily_trends = {}
-    hourly_usage = {}
-    weekly_summary = {}
-    anomalies_dict = {}
+    hourly_patterns = {}
+    weekly_summaries = {}
+    anomaly_data = {}
+    all_combined = []
 
-    for tank, source in sources.items():
-        df = fetch_data(source, from_csv=from_csv)
-        df = preprocess(df)
-        summary, daily, hourly, weekly, anomalies = summarize(df)
-        data[tank] = df
-        summaries[tank] = summary
-        daily_trends[tank] = daily
-        hourly_usage[tank] = hourly
-        weekly_summary[tank] = weekly
-        anomalies_dict[tank] = anomalies
+    for tank, source in source_dict.items():
+        if from_csv:
+            df = pd.read_csv(source)
+        else:
+            df = pd.read_csv(source)
 
-    comparison_df = compare_tanks(data)
+        df = clean_and_prepare(df)
+
+        summaries[tank] = summarize_data(df)
+        daily_trends[tank] = group_by_day(df)
+        hourly_patterns[tank] = group_by_hour(df)
+        weekly_summaries[tank] = weekly_summary(df)
+        anomaly_data[tank] = detect_anomalies(df)
+
+        df['Tank'] = tank
+        all_combined.append(df)
+
+    comparison_df = pd.concat(all_combined)
+
     return {
-        "data": data,
-        "summaries": summaries,
-        "daily": daily_trends,
-        "hourly": hourly_usage,
-        "weekly": weekly_summary,
-        "anomalies": anomalies_dict,
-        "comparison": comparison_df
+        'summaries': summaries,
+        'daily': daily_trends,
+        'hourly': hourly_patterns,
+        'weekly': weekly_summaries,
+        'anomalies': anomaly_data,
+        'comparison': comparison_df
     }
