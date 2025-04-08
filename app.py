@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from multi_tank_analysis import analyze_all_sources
+from multitankanalysis import analyze_all_sources
 
 st.set_page_config(page_title="Smart Water Management Dashboard", layout="wide")
 st.title("🚰 Smart Water Management: Multi-Tank Analysis")
@@ -32,7 +32,7 @@ if csv_uploads and len(csv_uploads) == 3:
 
     st.header("📈 Daily Consumption Trends")
     for tank, daily in analysis['daily'].items():
-        st.subheader(f"📅 {tank} Daily Trend")
+        st.subheader(f"🗕️ {tank} Daily Trend")
         st.line_chart(daily, use_container_width=True)
 
     st.header("⏱️ Hourly Usage Patterns")
@@ -43,7 +43,7 @@ if csv_uploads and len(csv_uploads) == 3:
     st.header("🗓️ Weekly Summary")
     weekly_data = []
     for tank, week in analysis['weekly'].items():
-        st.subheader(f"📅 {tank} Weekly Summary")
+        st.subheader(f"🗕️ {tank} Weekly Summary")
 
         # Highlight negative values in red and style the table
         def highlight_neg(val):
@@ -77,5 +77,3 @@ if csv_uploads and len(csv_uploads) == 3:
         )
 else:
     st.warning("Please upload or input data for all 3 tanks. 👉 Use the sidebar on the left!")
-
-
