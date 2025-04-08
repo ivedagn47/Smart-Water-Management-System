@@ -32,41 +32,20 @@ if csv_uploads and len(csv_uploads) == 3:
 
     st.header("📈 Daily Consumption Trends")
     for tank, daily in analysis['daily'].items():
-        st.subheader(f"🗕️ {tank} Daily Trend")
         st.line_chart(daily, use_container_width=True)
 
     st.header("⏱️ Hourly Usage Patterns")
     for tank, hourly in analysis['hourly'].items():
-        st.subheader(f"🕒 {tank} Hourly Usage")
         st.bar_chart(hourly, use_container_width=True)
 
     st.header("🗓️ Weekly Summary")
-    weekly_data = []
     for tank, week in analysis['weekly'].items():
-        st.subheader(f"🗕️ {tank} Weekly Summary")
-
-        # Highlight negative values in red and style the table
-        def highlight_neg(val):
-            return 'color: red;' if isinstance(val, (int, float)) and val < 0 else ''
-
-        styled_week = week.style.applymap(highlight_neg, subset=['water_diff'])
-        st.dataframe(styled_week, use_container_width=True)
-
-        week_copy = week.copy()
-        week_copy['Tank'] = tank
-        weekly_data.append(week_copy)
-
-    # Combined weekly usage comparison
-    if weekly_data:
-        st.subheader("📉 Total Weekly Usage Comparison")
-        combined_week = pd.concat(weekly_data)
-        combined_week_chart = combined_week.pivot(index="week", columns="Tank", values="water_diff")
-        st.line_chart(combined_week_chart, use_container_width=True)
+        st.dataframe(week)
 
     st.header("🚨 Detected Anomalies")
     for tank, df in analysis['anomalies'].items():
-        st.subheader(f"⚠️ {tank} Anomalies")
-        st.dataframe(df[['created_at', 'water_liters', 'usage_rate']].head(10), use_container_width=True)
+        st.subheader(f"{tank}")
+        st.dataframe(df[['created_at', 'water_liters', 'usage_rate']].head(10))
 
     st.header("📊 Tank Comparison Overview")
     comp = analysis['comparison']
