@@ -23,6 +23,19 @@ for i in range(1, 4):
 
 if csv_uploads and len(csv_uploads) == 3:
     st.success("Data successfully loaded. Generating insights...")
+
+    if not use_csv:
+        st.subheader("📋 Link Debug Info")
+        for tank, link in csv_uploads.items():
+            try:
+                df_debug = pd.read_csv(link)
+                st.write(f"🔍 {tank} preview:")
+                st.dataframe(df_debug.head(2))
+                if "created_at" not in df_debug.columns:
+                    st.error(f"❌ '{tank}' is missing 'created_at' column!")
+            except Exception as e:
+                st.error(f"⚠️ Failed to fetch {tank}: {e}")
+
     analysis = analyze_all_sources(csv_uploads, from_csv=use_csv)
 
     st.header("📊 Tank-wise Summary")
@@ -32,20 +45,39 @@ if csv_uploads and len(csv_uploads) == 3:
 
     st.header("📈 Daily Consumption Trends")
     for tank, daily in analysis['daily'].items():
+        st.subheader(f"🗕️ {tank} Daily Trend")
         st.line_chart(daily, use_container_width=True)
 
     st.header("⏱️ Hourly Usage Patterns")
     for tank, hourly in analysis['hourly'].items():
+        st.subheader(f"🕒 {tank} Hourly Usage")
         st.bar_chart(hourly, use_container_width=True)
 
     st.header("🗓️ Weekly Summary")
+    weekly_data = []
     for tank, week in analysis['weekly'].items():
-        st.dataframe(week)
+        st.subheader(f"🗕️ {tank} Weekly Summary")
+
+        def highlight_neg(val):
+            return 'color: red;' if isinstance(val, (int, float)) and val < 0 else ''
+
+        styled_week = week.style.applymap(highlight_neg, subset=['water_diff'])
+        st.dataframe(styled_week, use_container_width=True)
+
+        week_copy = week.copy()
+        week_copy['Tank'] = tank
+        weekly_data.append(week_copy)
+
+    if weekly_data:
+        st.subheader("📉 Total Weekly Usage Comparison")
+        combined_week = pd.concat(weekly_data)
+        combined_week_chart = combined_week.pivot(index="week", columns="Tank", values="water_diff")
+        st.line_chart(combined_week_chart, use_container_width=True)
 
     st.header("🚨 Detected Anomalies")
     for tank, df in analysis['anomalies'].items():
-        st.subheader(f"{tank}")
-        st.dataframe(df[['created_at', 'water_liters', 'usage_rate']].head(10))
+        st.subheader(f"⚠️ {tank} Anomalies")
+        st.dataframe(df[['created_at', 'water_liters', 'usage_rate']].head(10), use_container_width=True)
 
     st.header("📊 Tank Comparison Overview")
     comp = analysis['comparison']
