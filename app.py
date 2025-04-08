@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from multitankanalysis import analyze_all_sources
+from multi_tank_analysis import analyze_all_sources
 
 st.set_page_config(page_title="Smart Water Management Dashboard", layout="wide")
 st.title("🚰 Smart Water Management: Multi-Tank Analysis")
@@ -39,8 +39,26 @@ if csv_uploads and len(csv_uploads) == 3:
         st.bar_chart(hourly, use_container_width=True)
 
     st.header("🗓️ Weekly Summary")
+    weekly_data = []
     for tank, week in analysis['weekly'].items():
-        st.dataframe(week)
+        st.subheader(f"📅 {tank} Weekly Summary")
+
+        # Highlight negative values in red
+        styled_week = week.style.applymap(
+            lambda x: "color: red;" if isinstance(x, (int, float)) and x < 0 else ""
+        )
+        st.dataframe(styled_week)
+
+        week_copy = week.copy()
+        week_copy['Tank'] = tank
+        weekly_data.append(week_copy)
+
+    # Combined weekly usage comparison
+    if weekly_data:
+        st.subheader("📉 Total Weekly Usage Comparison")
+        combined_week = pd.concat(weekly_data)
+        combined_week_chart = combined_week.pivot(index="week", columns="Tank", values="water_diff")
+        st.line_chart(combined_week_chart, use_container_width=True)
 
     st.header("🚨 Detected Anomalies")
     for tank, df in analysis['anomalies'].items():
@@ -56,3 +74,4 @@ if csv_uploads and len(csv_uploads) == 3:
         )
 else:
     st.warning("Please upload or input data for all 3 tanks. 👉 Use the sidebar on the left!")
+
