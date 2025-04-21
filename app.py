@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import matplotlib.pyplot as plt
 from multitankanalysis import analyze_all_sources
 
 st.set_page_config(page_title="Smart Water Management Dashboard", layout="wide")
@@ -54,15 +55,23 @@ if csv_uploads and len(csv_uploads) == 3:
 
     st.header("📈 Daily Consumption Trends")
     for tank, daily in analysis['daily'].items():
-        st.line_chart(daily, use_container_width=True)
-        st.write("### Daily Consumption (liters/day)")
-        st.write("Time (Days) vs Water Consumption (liters)")
+        # Plotting with axis labels
+        fig, ax = plt.subplots()
+        ax.plot(daily.index, daily.values, label="Water Consumption (liters/day)")
+        ax.set_xlabel('Time (Days)')
+        ax.set_ylabel('Water Consumption (liters/day)')
+        ax.set_title(f"Daily Consumption Trends for {tank}")
+        st.pyplot(fig)
 
     st.header("⏱ Hourly Usage Patterns")
     for tank, hourly in analysis['hourly'].items():
-        st.bar_chart(hourly, use_container_width=True)
-        st.write("### Hourly Usage Patterns")
-        st.write("Time (Hours) vs Usage Rate (liters/hour)")
+        # Plotting with axis labels
+        fig, ax = plt.subplots()
+        ax.bar(hourly.index, hourly.values, label="Usage Rate (liters/hour)")
+        ax.set_xlabel('Time (Hours)')
+        ax.set_ylabel('Usage Rate (liters/hour)')
+        ax.set_title(f"Hourly Usage Patterns for {tank}")
+        st.pyplot(fig)
 
     st.header("🗓 Weekly Summary")
     for tank, week in analysis['weekly'].items():
@@ -76,12 +85,15 @@ if csv_uploads and len(csv_uploads) == 3:
     st.header("📊 Tank Comparison Overview")
     comp = analysis['comparison']
     if not comp.empty:
-        st.line_chart(
-            comp.pivot(index="created_at", columns="Tank", values="water_liters"),
-            use_container_width=True,
-        )
-        st.write("### Tank Comparison Overview")
-        st.write("Time (Days) vs Water Levels (liters)")
-
+        # Plotting comparison with axis labels
+        fig, ax = plt.subplots()
+        for tank in comp['Tank'].unique():
+            tank_data = comp[comp['Tank'] == tank]
+            ax.plot(tank_data['created_at'], tank_data['water_liters'], label=f"{tank}")
+        ax.set_xlabel('Time (Days)')
+        ax.set_ylabel('Water Levels (liters)')
+        ax.set_title("Tank Comparison Overview")
+        ax.legend()
+        st.pyplot(fig)
 else:
     st.warning("Please upload or input data for all 3 tanks. 👉 Use the sidebar on the left!")
