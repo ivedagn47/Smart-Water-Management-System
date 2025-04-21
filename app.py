@@ -57,9 +57,9 @@ if csv_uploads and len(csv_uploads) == 3:
     for tank, daily in analysis['daily'].items():
         # Plotting with bright colors and axis labels
         fig, ax = plt.subplots()
-        ax.plot(daily.index, daily.values, label="Water Consumption (liters/day)", color="magenta")
+        ax.plot(daily.index, daily.values, label="Water Consumption (liters)", color="magenta")
         ax.set_xlabel('Time (Days)')
-        ax.set_ylabel('Water Consumption (liters/day)')
+        ax.set_ylabel('Water Consumption (Liters)')
         ax.set_title(f"Daily Consumption Trends for {tank}")
         st.pyplot(fig)
 
@@ -67,9 +67,9 @@ if csv_uploads and len(csv_uploads) == 3:
     for tank, hourly in analysis['hourly'].items():
         # Plotting with bright colors and axis labels
         fig, ax = plt.subplots()
-        ax.bar(hourly.index, hourly.values, label="Usage Rate (liters/hour)", color="cyan")
+        ax.bar(hourly.index, hourly.values, label="Usage Rate (liters)", color="cyan")
         ax.set_xlabel('Time (Hours)')
-        ax.set_ylabel('Usage Rate (liters/hour)')
+        ax.set_ylabel('Usage Rate (Liters)')
         ax.set_title(f"Hourly Usage Patterns for {tank}")
         st.pyplot(fig)
 
