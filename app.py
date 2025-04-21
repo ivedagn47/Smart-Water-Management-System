@@ -29,7 +29,13 @@ if csv_uploads and len(csv_uploads) == 3:
     for tank, summary in analysis['summaries'].items():
         # Format and add units to the summary
         summary["average_daily_consumption"] = f"{summary['average_daily_consumption']:.2f} liters/day"
-        summary["peak_usage_hour"] = f"{summary['peak_usage_hour']} (AM/PM)"
+        
+        # Format peak_usage_hour to show AM or PM only
+        hour = summary["peak_usage_hour"]
+        hour = int(hour) % 12  # Convert to 12-hour format
+        am_pm = "AM" if int(summary["peak_usage_hour"]) < 12 else "PM"
+        summary["peak_usage_hour"] = f"{hour if hour != 0 else 12} {am_pm}"
+        
         summary["average_refill_time"] = f"{summary['average_refill_time']:.2f} seconds"
         summary["status_counts"] = {key: f"{value} events" for key, value in summary['status_counts'].items()}
         
