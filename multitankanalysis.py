@@ -34,28 +34,28 @@ def calculate_usage_metrics(df):
     df["usage_rate"] = df["water_diff"] / df["time_diff"]
     return df
 
-def summarize(df):
-    summary = {}
-    df = calculate_usage_metrics(df)
+# def summarize(df):
+#     summary = {}
+#     df = calculate_usage_metrics(df)
 
-    daily = df.groupby("date")["water_diff"].sum()
-    summary["average_daily_consumption"] = daily.mean()
+#     daily = df.groupby("date")["water_diff"].sum()
+#     summary["average_daily_consumption"] = daily.mean()
 
-    hourly = df.groupby("hour")["usage_rate"].mean()
-    summary["peak_usage_hour"] = hourly.idxmax()
+#     hourly = df.groupby("hour")["usage_rate"].mean()
+#     summary["peak_usage_hour"] = hourly.idxmax()
 
-    refills = df[df["water_diff"] > 0]
-    summary["average_refill_time"] = refills["time_diff"].mean()
+#     refills = df[df["water_diff"] > 0]
+#     summary["average_refill_time"] = refills["time_diff"].mean()
 
-    df["status"] = df["water_diff"].apply(lambda x: 'Filling' if x > 0 else ('Draining' if x < 0 else 'Idle'))
-    summary["status_counts"] = df["status"].value_counts()
+#     df["status"] = df["water_diff"].apply(lambda x: 'Filling' if x > 0 else ('Draining' if x < 0 else 'Idle'))
+#     summary["status_counts"] = df["status"].value_counts()
 
-    df["week"] = df["created_at"].dt.to_period("W").astype(str)
-    weekly_summary = df.groupby("week")["water_diff"].sum().reset_index()
+#     df["week"] = df["created_at"].dt.to_period("W").astype(str)
+#     weekly_summary = df.groupby("week")["water_diff"].sum().reset_index()
 
-    anomalies = df[abs(df["usage_rate"]) > df["usage_rate"].std() * 2]
+#     anomalies = df[abs(df["usage_rate"]) > df["usage_rate"].std() * 2]
 
-    return summary, daily, hourly, weekly_summary, anomalies
+#     return summary, daily, hourly, weekly_summary, anomalies
 
 def compare_tanks(data_dict):
     all_tanks = []
