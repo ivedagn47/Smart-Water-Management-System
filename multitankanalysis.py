@@ -34,28 +34,18 @@ def calculate_usage_metrics(df):
     df["usage_rate"] = df["water_diff"] / df["time_diff"]
     return df
 
-# def summarize(df):
-#     summary = {}
-#     df = calculate_usage_metrics(df)
+def summarize_only_metrics(df):
+    df = calculate_usage_metrics(df)
 
-#     daily = df.groupby("date")["water_diff"].sum()
-#     summary["average_daily_consumption"] = daily.mean()
+    daily = df.groupby("date")["water_diff"].sum()
+    hourly = df.groupby("hour")["usage_rate"].mean()
+    df["week"] = df["created_at"].dt.to_period("W").astype(str)
+    weekly_summary = df.groupby("week")["water_diff"].sum().reset_index()
 
-#     hourly = df.groupby("hour")["usage_rate"].mean()
-#     summary["peak_usage_hour"] = hourly.idxmax()
+    std_dev = df["usage_rate"].std()
+    anomalies = df[abs(df["usage_rate"]) > std_dev * 2] if pd.notna(std_dev) and std_dev > 0 else pd.DataFrame()
 
-#     refills = df[df["water_diff"] > 0]
-#     summary["average_refill_time"] = refills["time_diff"].mean()
-
-#     df["status"] = df["water_diff"].apply(lambda x: 'Filling' if x > 0 else ('Draining' if x < 0 else 'Idle'))
-#     summary["status_counts"] = df["status"].value_counts()
-
-#     df["week"] = df["created_at"].dt.to_period("W").astype(str)
-#     weekly_summary = df.groupby("week")["water_diff"].sum().reset_index()
-
-#     anomalies = df[abs(df["usage_rate"]) > df["usage_rate"].std() * 2]
-
-#     return summary, daily, hourly, weekly_summary, anomalies
+    return daily, hourly, weekly_summary, anomalies
 
 def compare_tanks(data_dict):
     all_tanks = []
@@ -67,7 +57,6 @@ def compare_tanks(data_dict):
 
 def analyze_all_sources(sources, from_csv=False):
     data = {}
-    summaries = {}
     daily_trends = {}
     hourly_usage = {}
     weekly_summary = {}
@@ -75,11 +64,10 @@ def analyze_all_sources(sources, from_csv=False):
 
     for tank, source in sources.items():
         df = fetch_data(source, from_csv=from_csv)
-        print(f"[DEBUG] Raw columns for {tank}: {df.columns.tolist()}")  # Helpful in debugging
+        print(f"[DEBUG] Raw columns for {tank}: {df.columns.tolist()}")
         df = preprocess(df)
-        summary, daily, hourly, weekly, anomalies = summarize(df)
+        daily, hourly, weekly, anomalies = summarize_only_metrics(df)
         data[tank] = df
-        summaries[tank] = summary
         daily_trends[tank] = daily
         hourly_usage[tank] = hourly
         weekly_summary[tank] = weekly
@@ -88,10 +76,8 @@ def analyze_all_sources(sources, from_csv=False):
     comparison_df = compare_tanks(data)
     return {
         "data": data,
-        "summaries": summaries,
         "daily": daily_trends,
         "hourly": hourly_usage,
         "weekly": weekly_summary,
         "anomalies": anomalies_dict,
-        "comparison": comparison_df
-    }
+        "comparison": comparison_df_
