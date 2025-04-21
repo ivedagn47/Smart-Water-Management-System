@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
 from io import BytesIO
-from multitank_analysis import analyze_all_sources
+from multitankanalysis import analyze_all_sources
 
 # Set visual theme
 sns.set_style("darkgrid")
