@@ -21,7 +21,16 @@ for i in range(1, 4):
         if link:
             csv_uploads[tank_key] = link
 
-if csv_uploads and len(csv_uploads) == 3:
+# Ensure "generate_insights" is initialized in session_state
+if "generate_insights" not in st.sidebar.session_state:
+    st.sidebar.session_state["generate_insights"] = False
+
+# Button to trigger analysis after uploading all data
+if len(csv_uploads) == 3:
+    if st.sidebar.button("Generate Insights"):
+        st.sidebar.session_state["generate_insights"] = True
+
+if csv_uploads and len(csv_uploads) == 3 and st.sidebar.session_state["generate_insights"]:
     st.success("Data successfully loaded. Generating insights...")
     analysis = analyze_all_sources(csv_uploads, from_csv=use_csv)
 
@@ -55,10 +64,14 @@ if csv_uploads and len(csv_uploads) == 3:
     st.header("📈 Daily Consumption Trends")
     for tank, daily in analysis['daily'].items():
         st.line_chart(daily, use_container_width=True)
+        st.write("### Daily Consumption (liters/day)")
+        st.write("Time (Days) vs Water Consumption (liters)")
 
     st.header("⏱ Hourly Usage Patterns")
     for tank, hourly in analysis['hourly'].items():
         st.bar_chart(hourly, use_container_width=True)
+        st.write("### Hourly Usage Patterns")
+        st.write("Time (Hours) vs Usage Rate (liters/hour)")
 
     st.header("🗓 Weekly Summary")
     for tank, week in analysis['weekly'].items():
@@ -72,11 +85,12 @@ if csv_uploads and len(csv_uploads) == 3:
     st.header("📊 Tank Comparison Overview")
     comp = analysis['comparison']
     if not comp.empty:
-        # Change pointers to neon colors
         st.line_chart(
             comp.pivot(index="created_at", columns="Tank", values="water_liters"),
             use_container_width=True,
-            color=["#39FF14", "#00FFFF", "#FF1493"]  # Neon colors
         )
+        st.write("### Tank Comparison Overview")
+        st.write("Time (Days) vs Water Levels (liters)")
+
 else:
     st.warning("Please upload or input data for all 3 tanks. 👉 Use the sidebar on the left!")
