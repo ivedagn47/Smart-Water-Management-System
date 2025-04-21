@@ -21,7 +21,16 @@ for i in range(1, 4):
         if link:
             csv_uploads[tank_key] = link
 
-if csv_uploads and len(csv_uploads) == 3:
+# Ensure "generate_insights" is initialized in session_state
+if "generate_insights" not in st.sidebar.session_state:
+    st.sidebar.session_state["generate_insights"] = False
+
+# Button to trigger analysis after uploading all data
+if len(csv_uploads) == 3:
+    if st.sidebar.button("Generate Insights"):
+        st.sidebar.session_state["generate_insights"] = True
+
+if csv_uploads and len(csv_uploads) == 3 and st.sidebar.session_state["generate_insights"]:
     st.success("Data successfully loaded. Generating insights...")
     analysis = analyze_all_sources(csv_uploads, from_csv=use_csv)
 
@@ -37,8 +46,18 @@ if csv_uploads and len(csv_uploads) == 3:
         summary["peak_usage_hour"] = f"{hour if hour != 0 else 12} {am_pm}"
         
         summary["average_refill_time"] = f"{summary['average_refill_time']:.2f} seconds"
-        summary["status_counts"] = {key: f"{value} events" for key, value in summary['status_counts'].items()}
         
+        # Convert status event counts to hours
+        if 'status_counts' in summary:
+            status_hours = {}
+            for status, count in summary['status_counts'].items():
+                # Sum of time_diff for each status (in seconds)
+                status_data = summary.get('status_data', {}).get(status, [])
+                total_time = sum([entry['time_diff'] for entry in status_data]) / 3600  # Convert seconds to hours
+                status_hours[status] = f"{total_time:.2f} hours"
+            
+            summary["status_counts"] = status_hours
+
         st.subheader(f"{tank} Summary")
         st.json(summary)
 
