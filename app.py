@@ -1,8 +1,10 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
+from matplotlib import cm
 from multitankanalysis import analyze_all_sources
 
+# Set page configuration
 st.set_page_config(page_title="Smart Water Management Dashboard", layout="wide")
 st.title("🚰 Smart Water Management: Multi-Tank Analysis")
 
@@ -55,22 +57,26 @@ if csv_uploads and len(csv_uploads) == 3:
 
     st.header("📈 Daily Consumption Trends")
     for tank, daily in analysis['daily'].items():
-        # Plotting with bright colors and axis labels
-        fig, ax = plt.subplots()
-        ax.plot(daily.index, daily.values, label="Water Consumption (liters/day)", color="magenta")
-        ax.set_xlabel('Time (Days)')
-        ax.set_ylabel('Water Consumption (liters/day)')
-        ax.set_title(f"Daily Consumption Trends for {tank}")
+        # Plotting with a classy and clean style
+        fig, ax = plt.subplots(figsize=(8, 6))
+        ax.plot(daily.index, daily.values, label="Water Consumption (liters)", color="#1f77b4", lw=2)
+        ax.set_xlabel('Time (Days)', fontsize=12)
+        ax.set_ylabel('Water Consumption (Liters)', fontsize=12)
+        ax.set_title(f"Daily Consumption Trends for {tank}", fontsize=14, fontweight='bold')
+        ax.grid(True, linestyle='--', alpha=0.7)
+        ax.legend(loc="upper left", fontsize=10)
         st.pyplot(fig)
 
     st.header("⏱ Hourly Usage Patterns")
     for tank, hourly in analysis['hourly'].items():
-        # Plotting with bright colors and axis labels
-        fig, ax = plt.subplots()
-        ax.bar(hourly.index, hourly.values, label="Usage Rate (liters/hour)", color="cyan")
-        ax.set_xlabel('Time (Hours)')
-        ax.set_ylabel('Usage Rate (liters/hour)')
-        ax.set_title(f"Hourly Usage Patterns for {tank}")
+        # Plotting with a more refined color palette and style
+        fig, ax = plt.subplots(figsize=(8, 6))
+        ax.bar(hourly.index, hourly.values, label="Usage Rate (liters)", color="#ff7f0e", alpha=0.8)
+        ax.set_xlabel('Time (Hours)', fontsize=12)
+        ax.set_ylabel('Usage Rate (Liters)', fontsize=12)
+        ax.set_title(f"Hourly Usage Patterns for {tank}", fontsize=14, fontweight='bold')
+        ax.grid(True, linestyle='--', alpha=0.7)
+        ax.legend(loc="upper right", fontsize=10)
         st.pyplot(fig)
 
     st.header("🗓 Weekly Summary")
@@ -85,17 +91,18 @@ if csv_uploads and len(csv_uploads) == 3:
     st.header("📊 Tank Comparison Overview")
     comp = analysis['comparison']
     if not comp.empty:
-        # Plotting comparison with bright colors
-        fig, ax = plt.subplots()
-        colors = ["#39FF14", "#FF1493", "#FFFF00"]  # Bright neon colors for comparison
+        # Plotting comparison with more elegant colors
+        fig, ax = plt.subplots(figsize=(8, 6))
+        colors = cm.viridis([0.1, 0.3, 0.7])  # Using a professional colormap
         for idx, tank in enumerate(comp['Tank'].unique()):
             tank_data = comp[comp['Tank'] == tank]
-            ax.plot(tank_data['created_at'], tank_data['water_liters'], label=f"{tank}", color=colors[idx % len(colors)])
-        ax.set_xlabel('Time (Days)')
-        ax.set_ylabel('Water Levels (liters)')
-        ax.set_title("Tank Comparison Overview")
-        ax.legend()
+            ax.plot(tank_data['created_at'], tank_data['water_liters'], label=f"{tank}", color=colors[idx % len(colors)], lw=2)
+        ax.set_xlabel('Time (Days)', fontsize=12)
+        ax.set_ylabel('Water Levels (liters)', fontsize=12)
+        ax.set_title("Tank Comparison Overview", fontsize=14, fontweight='bold')
+        ax.legend(loc="upper left", fontsize=10)
+        ax.grid(True, linestyle='--', alpha=0.7)
         st.pyplot(fig)
+
 else:
     st.warning("Please upload or input data for all 3 tanks. 👉 Use the sidebar on the left!")
-
