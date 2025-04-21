@@ -57,8 +57,7 @@ def summarize(df):
 
     # Refill Patterns
     refills = df[df["water_diff"] > 0]
-    refill_time = refills["time_diff"].mean() if not refills.empty else None
-    summary["average_refill_time"] = refill_time
+    summary["average_refill_time"] = refills["time_diff"].mean()
 
     # Idle Duration
     df["status"] = df["water_diff"].apply(lambda x: 'Filling' if x > 0 else ('Draining' if x < 0 else 'Idle'))
