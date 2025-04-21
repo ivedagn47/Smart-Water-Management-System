@@ -21,23 +21,12 @@ for i in range(1, 4):
         if link:
             csv_uploads[tank_key] = link
 
-# Ensure "generate_insights" is initialized in session_state
-if "generate_insights" not in st.sidebar.session_state:
-    st.sidebar.session_state["generate_insights"] = False
-
-# Button to trigger analysis after uploading all data
-if len(csv_uploads) == 3:
-    if st.sidebar.button("Generate Insights"):
-        st.sidebar.session_state["generate_insights"] = True
-
-if csv_uploads and len(csv_uploads) == 3 and st.sidebar.session_state["generate_insights"]:
+if csv_uploads and len(csv_uploads) == 3:
     st.success("Data successfully loaded. Generating insights...")
     analysis = analyze_all_sources(csv_uploads, from_csv=use_csv)
 
     st.header("📊 Tank-wise Summary")
     for tank, summary in analysis['summaries'].items():
-        # Change "peak_usage_hour" to 6AM in tank summary
-        summary["peak_usage_hour"] = "6AM"
         st.subheader(f"{tank} Summary")
         st.json(summary)
 
@@ -61,12 +50,9 @@ if csv_uploads and len(csv_uploads) == 3 and st.sidebar.session_state["generate_
     st.header("📊 Tank Comparison Overview")
     comp = analysis['comparison']
     if not comp.empty:
-        # Change pointers to neon colors
         st.line_chart(
             comp.pivot(index="created_at", columns="Tank", values="water_liters"),
-            use_container_width=True,
-            color=["#39FF14", "#00FFFF", "#FF1493"]  # Neon colors
+            use_container_width=True
         )
 else:
     st.warning("Please upload or input data for all 3 tanks. 👉 Use the sidebar on the left!")
-
