@@ -21,11 +21,16 @@ for i in range(1, 4):
         if link:
             csv_uploads[tank_key] = link
 
-# Button to trigger analysis after uploading all data
-# if len(csv_uploads) == 3:
-#     st.sidebar.button("Generate Insights", key="generate_insights")
+# Set default state if not already set
+if "generate_insights" not in st.sidebar.session_state:
+    st.sidebar.session_state["generate_insights"] = False
 
-if csv_uploads and len(csv_uploads) == 3 and st.sidebar.session_state.get("generate_insights"):
+# Button to trigger analysis after uploading all data
+if len(csv_uploads) == 3:
+    if st.sidebar.button("Generate Insights"):
+        st.sidebar.session_state["generate_insights"] = True
+
+if csv_uploads and len(csv_uploads) == 3 and st.sidebar.session_state["generate_insights"]:
     st.success("Data successfully loaded. Generating insights...")
     analysis = analyze_all_sources(csv_uploads, from_csv=use_csv)
 
@@ -64,3 +69,4 @@ if csv_uploads and len(csv_uploads) == 3 and st.sidebar.session_state.get("gener
         )
 else:
     st.warning("Please upload or input data for all 3 tanks. 👉 Use the sidebar on the left!")
+
