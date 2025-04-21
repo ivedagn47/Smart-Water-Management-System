@@ -5,12 +5,12 @@ import pandas as pd
 from io import BytesIO
 from multitankanalysis import analyze_all_sources
 
-# Set visual theme
+# Set seaborn dark style and neon theme
 sns.set_style("darkgrid")
 plt.rcParams.update({
     "axes.labelsize": 12,
     "axes.titlesize": 14,
-    "axes.edgecolor": "#00f5ff",  # neon-ish cyan
+    "axes.edgecolor": "#00f5ff",
     "xtick.color": "#00f5ff",
     "ytick.color": "#00f5ff",
     "axes.labelcolor": "#00f5ff",
@@ -19,11 +19,9 @@ plt.rcParams.update({
 
 st.title("💧 Multitank Water Usage Dashboard")
 
-# Sidebar filters
 st.sidebar.header("⚙️ Settings")
 from_csv = st.sidebar.checkbox("Use CSV Upload", False)
 
-# Date Range Filter
 start_date = st.sidebar.date_input("Start Date")
 end_date = st.sidebar.date_input("End Date")
 
@@ -64,7 +62,6 @@ if sources:
         ax.legend()
         st.pyplot(fig)
 
-        # Download daily report
         daily_csv = daily.reset_index().rename(columns={"index": "Date", "water_liters": "Usage (Liters)"})
         st.download_button(f"⬇️ Download Daily Report - {tank}", daily_csv.to_csv(index=False), file_name=f"{tank}_daily.csv")
 
@@ -89,7 +86,6 @@ if sources:
         plt.xticks(rotation=45)
         st.pyplot(fig)
 
-        # Download weekly report
         st.download_button(f"⬇️ Download Weekly Report - {tank}", weekly.to_csv(index=False), file_name=f"{tank}_weekly.csv")
 
     st.header("🚨 Anomalies in Usage")
