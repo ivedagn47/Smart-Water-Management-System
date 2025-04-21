@@ -45,19 +45,19 @@ if process_data and csv_uploads and len(csv_uploads) == 3:
 
     analysis = analyze_all_sources(csv_uploads, from_csv=use_csv)
 
-    # st.header("📊 Tank-wise Summary")
-    # for tank, summary in analysis['summaries'].items():
-    #     st.subheader(f"{tank} Summary")
-    #     # Add units to values where relevant
-    #     readable_summary = {
-    #         "Average Daily Consumption (Liters)": round(summary.get("average_daily_consumption", 0), 2),
-    #         "Peak Usage Hour (0–23)": summary.get("peak_usage_hour"),
-    #         "Average Refill Time (seconds)": round(summary.get("average_refill_time", 0), 2)
-    #     }
-    #     status_counts = summary.get("status_counts", {})
-    #     for status, count in status_counts.items():
-    #         readable_summary[f"Time in '{status}' State (samples)"] = count
-    #     st.json(readable_summary)
+    st.header("📊 Tank-wise Summary")
+    for tank, summary in analysis['summaries'].items():
+        st.subheader(f"{tank} Summary")
+        # Add units to values where relevant
+        readable_summary = {
+            "Average Daily Consumption (Liters)": round(summary.get("average_daily_consumption", 0), 2),
+            "Peak Usage Hour (0–23)": summary.get("peak_usage_hour"),
+            "Average Refill Time (seconds)": round(summary.get("average_refill_time", 0), 2)
+        }
+        status_counts = summary.get("status_counts", {})
+        for status, count in status_counts.items():
+            readable_summary[f"Time in '{status}' State (samples)"] = count
+        st.json(readable_summary)
 
     st.header("📈 Daily Consumption Trends (Liters)")
     for tank, daily in analysis['daily'].items():
@@ -111,5 +111,5 @@ if process_data and csv_uploads and len(csv_uploads) == 3:
         st.pyplot(fig)
 
 else:
-    st.info("Please upload or input data for all 3 tanks, then click **✅ Enter and Analyze Data** in the sidebar.")
+    st.info("Please upload or input data for all 3 tanks. 👉 Use the sidebar on the left!")
 
