@@ -4,24 +4,21 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from multitankanalysis import analyze_all_sources
 
-plt.style.use("dark_background")
-sns.set_style("darkgrid")
-
 # Page config
 st.set_page_config(page_title="Smart Water Management Dashboard", layout="wide")
 st.title("🚰 Smart Water Management: Multi-Tank Analysis")
 
-# Style
-sns.set_style("darkgrid")
-plt.rcParams.update({
-    "axes.labelsize": 12,
-    "axes.titlesize": 14,
-    "axes.edgecolor": "#00f5ff",
-    "xtick.color": "#00f5ff",
-    "ytick.color": "#00f5ff",
-    "axes.labelcolor": "#00f5ff",
-    "axes.titlecolor": "#00f5ff"
-})
+# # Style
+# sns.set_style("darkgrid")
+# plt.rcParams.update({
+#     "axes.labelsize": 12,
+#     "axes.titlesize": 14,
+#     "axes.edgecolor": "#00f5ff",
+#     "xtick.color": "#00f5ff",
+#     "ytick.color": "#00f5ff",
+#     "axes.labelcolor": "#00f5ff",
+#     "axes.titlecolor": "#00f5ff"
+# })
 
 st.sidebar.header("Upload Data or Enter ThingSpeak Links")
 csv_uploads = {}
