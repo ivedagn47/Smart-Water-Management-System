@@ -55,21 +55,21 @@ if csv_uploads and len(csv_uploads) == 3:
 
     st.header("📈 Daily Consumption Trends")
     for tank, daily in analysis['daily'].items():
-        # Plotting with axis labels
+        # Plotting with bright colors and axis labels
         fig, ax = plt.subplots()
-        ax.plot(daily.index, daily.values, label="Water Consumption (liters/day)")
+        ax.plot(daily.index, daily.values, label="Water Consumption (liters/day)", color="magenta")
         ax.set_xlabel('Time (Days)')
-        ax.set_ylabel('Water Consumption (Liters)')
+        ax.set_ylabel('Water Consumption (liters/day)')
         ax.set_title(f"Daily Consumption Trends for {tank}")
         st.pyplot(fig)
 
     st.header("⏱ Hourly Usage Patterns")
     for tank, hourly in analysis['hourly'].items():
-        # Plotting with axis labels
+        # Plotting with bright colors and axis labels
         fig, ax = plt.subplots()
-        ax.bar(hourly.index, hourly.values, label="Usage Rate (liters/hour)")
+        ax.bar(hourly.index, hourly.values, label="Usage Rate (liters/hour)", color="cyan")
         ax.set_xlabel('Time (Hours)')
-        ax.set_ylabel('Usage Rate (Liters)')
+        ax.set_ylabel('Usage Rate (liters/hour)')
         ax.set_title(f"Hourly Usage Patterns for {tank}")
         st.pyplot(fig)
 
@@ -80,16 +80,17 @@ if csv_uploads and len(csv_uploads) == 3:
     st.header("🚨 Detected Anomalies")
     for tank, df in analysis['anomalies'].items():
         st.subheader(f"{tank}")
-        st.dataframe(df[['timestamp', 'water(liters)', 'usage_rate']].head(10))
+        st.dataframe(df[['created_at', 'water_liters', 'usage_rate']].head(10))
 
     st.header("📊 Tank Comparison Overview")
     comp = analysis['comparison']
     if not comp.empty:
-        # Plotting comparison with axis labels
+        # Plotting comparison with bright colors
         fig, ax = plt.subplots()
-        for tank in comp['Tank'].unique():
+        colors = ["#39FF14", "#FF1493", "#FFFF00"]  # Bright neon colors for comparison
+        for idx, tank in enumerate(comp['Tank'].unique()):
             tank_data = comp[comp['Tank'] == tank]
-            ax.plot(tank_data['timestamp'], tank_data['water(liters)'], label=f"{tank}")
+            ax.plot(tank_data['created_at'], tank_data['water_liters'], label=f"{tank}", color=colors[idx % len(colors)])
         ax.set_xlabel('Time (Days)')
         ax.set_ylabel('Water Levels (liters)')
         ax.set_title("Tank Comparison Overview")
