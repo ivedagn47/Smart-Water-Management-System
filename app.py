@@ -5,7 +5,6 @@ import seaborn as sns
 from multitankanalysis import analyze_all_sources
 
 plt.style.use("dark_background")
-sns.set_style("darkgrid")plt.style.use("dark_background")
 sns.set_style("darkgrid")
 
 # Page config
