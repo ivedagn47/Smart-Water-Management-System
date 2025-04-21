@@ -22,8 +22,8 @@ for i in range(1, 4):
             csv_uploads[tank_key] = link
 
 # Button to trigger analysis after uploading all data
-if len(csv_uploads) == 3:
-    st.sidebar.button("Generate Insights", key="generate_insights")
+# if len(csv_uploads) == 3:
+#     st.sidebar.button("Generate Insights", key="generate_insights")
 
 if csv_uploads and len(csv_uploads) == 3 and st.sidebar.session_state.get("generate_insights"):
     st.success("Data successfully loaded. Generating insights...")
