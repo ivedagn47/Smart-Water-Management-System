@@ -21,6 +21,12 @@ def fetch_data(source, from_csv=False):
         return pd.read_csv(io.StringIO(response.text))
 
 def preprocess(df):
+    # Clean and standardize column names
+    df.columns = df.columns.str.strip().str.lower()
+
+    if "created_at" not in df.columns or "field1" not in df.columns:
+        raise ValueError(f"Missing columns! Found columns: {list(df.columns)}")
+
     df["created_at"] = pd.to_datetime(df["created_at"], errors="coerce") + timedelta(hours=5, minutes=30)
     df = df.sort_values("created_at")
     df["field1"] = pd.to_numeric(df["field1"], errors="coerce").fillna(0)
