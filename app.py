@@ -56,7 +56,7 @@ if csv_uploads and len(csv_uploads) == 3:
     st.header("📈 Daily Consumption Trends")
     for tank, daily in analysis['daily'].items():
         # Plotting with reduced graph size
-        fig, ax = plt.subplots(figsize=(8, 4))  # Reduced size (width, height)
+        fig, ax = plt.subplots(figsize=(6, 2))  # Reduced size (width, height)
         ax.plot(daily.index, daily.values, label="Water Consumption (liters)", color="magenta")
         ax.set_xlabel('Time (Days)')
         ax.set_ylabel('Water Consumption (Liters)')
@@ -66,7 +66,7 @@ if csv_uploads and len(csv_uploads) == 3:
     st.header("⏱ Hourly Usage Patterns")
     for tank, hourly in analysis['hourly'].items():
         # Plotting with reduced graph size
-        fig, ax = plt.subplots(figsize=(8, 4))  # Reduced size (width, height)
+        fig, ax = plt.subplots(figsize=(6, 2))  # Reduced size (width, height)
         ax.bar(hourly.index, hourly.values, label="Usage Rate (liters)", color="cyan")
         ax.set_xlabel('Time (Hours)')
         ax.set_ylabel('Usage Rate (Liters)')
@@ -86,7 +86,7 @@ if csv_uploads and len(csv_uploads) == 3:
     comp = analysis['comparison']
     if not comp.empty:
         # Plotting comparison with reduced graph size
-        fig, ax = plt.subplots(figsize=(8, 4))  # Reduced size (width, height)
+        fig, ax = plt.subplots(figsize=(6, 2))  # Reduced size (width, height)
         colors = ["#39FF14", "#FF1493", "#FFFF00"]  # Bright neon colors for comparison
         for idx, tank in enumerate(comp['Tank'].unique()):
             tank_data = comp[comp['Tank'] == tank]
