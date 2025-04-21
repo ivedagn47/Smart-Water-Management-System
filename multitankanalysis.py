@@ -47,30 +47,44 @@ def summarize(df):
     summary = {}
     df = calculate_usage_metrics(df)
 
-    # Average Daily Consumption
+    # 1. Average Daily Consumption (Liters) — only positive usage
     daily = df.groupby("date")["water_diff"].sum()
-    summary["average_daily_consumption"] = daily.mean()
+    daily_filtered = daily[daily > 0]
+    avg_consumption = round(daily_filtered.mean(), 2) if not daily_filtered.empty else 0
 
-    # Peak Usage Periods
+    # 2. Peak Usage Hour
     hourly = df.groupby("hour")["usage_rate"].mean()
-    summary["peak_usage_hour"] = hourly.idxmax()
+    peak_hour = int(hourly.idxmax().item()) if not hourly.empty else "N/A"
 
-    # Refill Patterns
+    # 3. Average Refill Time (seconds)
     refills = df[df["water_diff"] > 0]
-    summary["average_refill_time"] = refills["time_diff"].mean()
+    avg_refill_time = round(refills["time_diff"].mean(), 2) if not refills.empty else "N/A"
 
-    # Idle Duration
-    df["status"] = df["water_diff"].apply(lambda x: 'Filling' if x > 0 else ('Draining' if x < 0 else 'Idle'))
-    summary["status_counts"] = df["status"].value_counts()
+    # # 4. Status Counts
+    # df["status"] = df["water_diff"].apply(
+    #     lambda x: 'Filling' if x > 0 else ('Draining' if x < 0 else 'Idle')
+    # )
+    # status_counts = df["status"].value_counts().to_dict()
 
-    # Weekly Summary
+    # 5. Weekly Summary (Liters)
     df["week"] = df["created_at"].dt.to_period("W").astype(str)
     weekly_summary = df.groupby("week")["water_diff"].sum().reset_index()
 
-    # Anomalies
-    anomalies = df[abs(df["usage_rate"]) > df["usage_rate"].std() * 2]
+    # 6. Anomalies based on usage_rate deviation
+    std_dev = df["usage_rate"].std()
+    anomalies = df[abs(df["usage_rate"]) > std_dev * 2] if pd.notna(std_dev) and std_dev > 0 else pd.DataFrame()
 
-    return summary, daily, hourly, weekly_summary, anomalies
+    # 💡 Final formatted summary with UNITS
+    formatted_summary = {
+        "Average Daily Consumption": f"{avg_consumption} Liters",
+        "Peak Usage Hour": f"{peak_hour} (24h format)",
+        "Average Refill Time": f"{avg_refill_time} seconds" if avg_refill_time != "N/A" else "N/A",
+        # "Time in Idle State": f"{status_counts.get('Idle', 0)} samples",
+        # "Time in Draining State": f"{status_counts.get('Draining', 0)} samples",
+        # "Time in Filling State": f"{status_counts.get('Filling', 0)} samples"
+    }
+
+    return formatted_summary, daily, hourly, weekly_summary, anomalies
 
 def compare_tanks(data_dict):
     all_tanks = []
