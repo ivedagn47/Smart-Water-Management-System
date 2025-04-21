@@ -47,44 +47,41 @@ def summarize(df):
     summary = {}
     df = calculate_usage_metrics(df)
 
-    # 1. Average Daily Consumption (Liters) — only positive usage
+    # 1. Daily Consumption (Ignore negative values)
     daily = df.groupby("date")["water_diff"].sum()
-    daily_filtered = daily[daily > 0]
-    avg_consumption = round(daily_filtered.mean(), 2) if not daily_filtered.empty else 0
+    daily_filtered = daily[daily > 0]  # filter only valid positive usage
+    summary["average_daily_consumption"] = round(daily_filtered.mean(), 2) if not daily_filtered.empty else 0
 
-    # 2. Peak Usage Hour
+    # 2. Peak Hour
     hourly = df.groupby("hour")["usage_rate"].mean()
-    peak_hour = int(hourly.idxmax().item()) if not hourly.empty else "N/A"
+    if not hourly.empty and hourly.idxmax() is not None:
+        summary["peak_usage_hour"] = int(hourly.idxmax().item())
+    else:
+        summary["peak_usage_hour"] = "N/A"
 
-    # 3. Average Refill Time (seconds)
+    # 3. Refill Time
     refills = df[df["water_diff"] > 0]
-    avg_refill_time = round(refills["time_diff"].mean(), 2) if not refills.empty else "N/A"
+    if not refills.empty:
+        summary["average_refill_time"] = round(refills["time_diff"].mean(), 2)
+    else:
+        summary["average_refill_time"] = "N/A"
 
-    # # 4. Status Counts
-    # df["status"] = df["water_diff"].apply(
-    #     lambda x: 'Filling' if x > 0 else ('Draining' if x < 0 else 'Idle')
-    # )
-    # status_counts = df["status"].value_counts().to_dict()
+    # 4. Tank Status Time Counts
+    df["status"] = df["water_diff"].apply(lambda x: 'Filling' if x > 0 else ('Draining' if x < 0 else 'Idle'))
+    summary["status_counts"] = df["status"].value_counts().to_dict()
 
-    # 5. Weekly Summary (Liters)
+    # 5. Weekly Summary
     df["week"] = df["created_at"].dt.to_period("W").astype(str)
     weekly_summary = df.groupby("week")["water_diff"].sum().reset_index()
 
-    # 6. Anomalies based on usage_rate deviation
+    # 6. Anomalies (very high usage rate outliers)
     std_dev = df["usage_rate"].std()
-    anomalies = df[abs(df["usage_rate"]) > std_dev * 2] if pd.notna(std_dev) and std_dev > 0 else pd.DataFrame()
+    if pd.notna(std_dev) and std_dev > 0:
+        anomalies = df[abs(df["usage_rate"]) > std_dev * 2]
+    else:
+        anomalies = pd.DataFrame(columns=df.columns)
 
-    # 💡 Final formatted summary with UNITS
-    formatted_summary = {
-        "Average Daily Consumption": f"{avg_consumption} Liters",
-        "Peak Usage Hour": f"{peak_hour} (24h format)",
-        "Average Refill Time": f"{avg_refill_time} seconds" if avg_refill_time != "N/A" else "N/A",
-        # "Time in Idle State": f"{status_counts.get('Idle', 0)} samples",
-        # "Time in Draining State": f"{status_counts.get('Draining', 0)} samples",
-        # "Time in Filling State": f"{status_counts.get('Filling', 0)} samples"
-    }
-
-    return formatted_summary, daily, hourly, weekly_summary, anomalies
+    return summary, daily, hourly, weekly_summary, anomalies
 
 def compare_tanks(data_dict):
     all_tanks = []
