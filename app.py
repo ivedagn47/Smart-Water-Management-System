@@ -21,7 +21,7 @@ for i in range(1, 4):
         if link:
             csv_uploads[tank_key] = link
 
-if csv_uploads and len(csv_uploads) == 3 and st.sidebar.session_state["generate_insights"]:
+if csv_uploads and len(csv_uploads) == 3:
     st.success("Data successfully loaded. Generating insights...")
     analysis = analyze_all_sources(csv_uploads, from_csv=use_csv)
 
